@@ -1,0 +1,42 @@
+# ==== 第三方参考项目（不入库）====
+reference/
+
+# ==== 本地工具与编辑器 ====
+.claude/
+.qoder/
+.claude-tmp/
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# ==== 环境变量与密钥 ====
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ==== Python ====
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# ==== Node / 前端 ====
+node_modules/
+frontend/dist/
+dist/
+test-results/
+playwright-report/
+
+# ==== 运行时产物 ====
+backend/logs/
+backend/data/collect/
+*.log

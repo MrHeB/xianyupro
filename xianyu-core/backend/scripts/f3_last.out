@@ -1,0 +1,11 @@
+﻿python.exe :   File "C:\xianyu-auto-reply\xianyu-core\backend\scripts\smoke_f3.py", line 46
+所在位置 行:2 字符: 46
++ ...  ==="; $o = & .venv\Scripts\python.exe scripts\smoke_f3.py 2>&1 | Out ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (  File "C:\xian...f3.py", line 46:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+    raise RuntimeError("鍚庣\ue06c鏈\ue044湪 10s 鍐呭氨缁?)
+                       ^
+SyntaxError: unterminated string literal (detected at line 46)
+

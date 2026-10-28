@@ -1,0 +1,89 @@
+services:
+  mysql:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-xianyu_core}
+      MYSQL_USER: ${MYSQL_USER:-xianyu}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-xianyu123}
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      # 不要用 `mysqladmin ping -h localhost`：MySQL 初始化阶段会先起一个
+      # --skip-networking 的临时 server，ping 也返回 0（假健康）。此时
+      # depends_on: service_healthy 会放行 backend，alembic 连不上库直接 exit 1。
+      # 这里强制走 TCP + 真实登录 + 查库，初始化没完就一直 unhealthy。
+      test:
+        [
+          "CMD-SHELL",
+          "mysql -h 127.0.0.1 -u\"$${MYSQL_USER}\" -p\"$${MYSQL_PASSWORD}\" -e 'SELECT 1' \"$${MYSQL_DATABASE}\"",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_PORT: "3306"
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-xianyu_core}
+      MYSQL_USER: ${MYSQL_USER:-xianyu}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-xianyu123}
+      REDIS_URL: redis://redis:6379/0
+      COOKIE_CRYPTO_SECRET: ${COOKIE_CRYPTO_SECRET:-change-me-in-production}
+      JWT_SECRET: ${JWT_SECRET:-change-me-jwt-secret-at-least-32-bytes-long}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://api.openai.com/v1}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+      # 检索原始响应体落盘（排障/补真实 fixture 用）。**默认空 = 关**：写出去的是未脱敏的上游
+      # 响应，只在这次需要"接口到底还长什么样"的证据时临时打开，用完从宿主目录里删掉。
+      COLLECT_DEBUG_DUMP_PATH: ${COLLECT_DEBUG_DUMP_PATH:-}
+    # 对外仅暴露内网调试用端口；生产建议前端反代
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      # 缺口⑦：采集工作区（data/collect/<batch>/offers/<id>/product.json + 图片）必须落在宿主上。
+      # 原先没挂 → 镜像重建把 2026-09-19 采的 5 件工作区整个抹掉，DB 里 Goods.local_path 全成指空目录，
+      # 那五行再也过不了放行闸门（"缺 product.json"）。选 bind mount 而不是 named volume，
+      # 因为 §3.1 的立足点就是"文件夹即工作区、人能直接打开核对"。
+      - ./backend/data:/app/data
+      # 熔断状态（logs/task-failure-guard.json）同理：重建即清零 = 24h 止损被静默解除。
+      - ./backend/logs:/app/logs
+    # 注意：这里**不要**再写 command 覆盖。Dockerfile 的 CMD 是
+    #   alembic upgrade head && uvicorn app.main:app ...
+    # 一旦在 compose 里覆盖成纯 uvicorn，容器启动就不再跑数据库迁移，
+    # 库里 schema 停在上一个 revision，接口会报
+    # "Unknown column ..." / "Table ... doesn't exist"。
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "127.0.0.1:8080:80"
+
+volumes:
+  mysql_data:
+  redis_data:

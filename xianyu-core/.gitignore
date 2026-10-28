@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+.pytest_cache/
+node_modules/
+frontend/dist/
+*.egg-info/
+.idea/
+.vscode/
+# 采集工作区整体不入库，只提交 schema 与 fixture（设计文档 §3.3-4）
+backend/data/collect/
+backend/logs/

@@ -1,0 +1,16 @@
+{
+  "selectedPoi": {
+    "address": "示例路1号",
+    "aoi": "示例小区东区",
+    "aoiId": "B0SYNTH0001",
+    "area": "徐汇区",
+    "city": "上海市",
+    "divisionId": 310104,
+    "isAoi": true,
+    "latitude": "31.230416",
+    "longitude": "121.473701",
+    "poi": "示例小区东区",
+    "poiId": "B0SYNTH0001",
+    "prov": "上海市"
+  }
+}

@@ -1,0 +1,10 @@
+# 构建上下文排除（宿主机 node_modules 含 win32 原生二进制，会污染 Linux 构建）
+node_modules/
+dist/
+test-results/
+playwright-report/
+blob-report/
+.git/
+.gitignore
+.env
+.env.*

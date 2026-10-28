@@ -1,0 +1,24 @@
+# 构建上下文排除（宿主机 Windows 产物不能进 Linux 镜像）
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+.env
+.env.*
+!.env.example
+.git/
+.gitignore
+# 工作区（product.json + 图片）由 compose 以 bind mount 挂进容器，不进镜像：
+# 一旦烘进去就有两份真相，重建镜像还会把新的一份覆盖掉（缺口⑦ 的成因）。
+data/
+# 真实详情页的**原始**样本嵌着货源账号痕迹（loginId / unb / clientIP），不能进镜像；
+# 脱敏后的版本在 tests/fixtures/alibaba/ 里，那才是给单测用的。
+scripts/.samples/
+scripts/.fixture_*
+scripts/.tmp_*
